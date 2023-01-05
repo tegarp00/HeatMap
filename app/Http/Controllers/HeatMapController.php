@@ -55,19 +55,35 @@ class HeatMapController extends Controller
     public function averageInCircle(Request $request)
     {
         $result = [];
-        $heatMap = HeatMap::all();
+        $heatMap = HeatMap::getHeatMap();
         foreach($request->input('coords') as $coord) {
             $latitude = $coord['latitude'];
             $longitude = $coord['longitude'];
             $filter = $heatMap->filter(function($data) use ($latitude, $longitude){
-                return $this->isInArea($latitude, $longitude, $data->lat, $data->long, 1000);
+                return $this->isInArea($latitude, $longitude, $data->latitude, $data->longitude, 1000);
             });
-            array_push($result, $filter);
+            array_push($result, $filter->values());
         }
+
+
+        $result = collect($result)->map(function($data, $key) use ($request){
+            $resp = [];
+            $resp['coords'] = $data;
+            $resp['center'] = $request->input('coords')[$key];
+            if(sizeof($data) == 0) {
+                $resp['average'] = 0;
+            } else {
+                $resp['average'] = collect($data)->map(fn($data)=>$data->harga)->sum()/sizeof($data);
+            }
+            return $resp;
+        });
+
+
+
         return response([
             'status' => true,
             'message' => '',
-            'data' => $result,
+            'data' => $result
         ]);
 
     }
@@ -86,6 +102,42 @@ class HeatMapController extends Controller
             return true;
         }
         return false;
+
+    }
+
+    public function testing(Request $request)
+    {
+        $result = [];
+        $heatMap = HeatMap::all();
+        foreach($request->input('coords') as $coord) {
+            $latitude = $coord['latitude'];
+            $longitude = $coord['longitude'];
+            $filter = $heatMap->filter(function($data) use ($latitude, $longitude){
+                return $this->isInArea($latitude, $longitude, $data->lat, $data->long, 1000);
+            });
+            array_push($result, $filter->values());
+        }
+
+
+        $result = collect($result)->map(function($data, $key) use ($request){
+            $resp = [];
+            $resp['coords'] = $data;
+            $resp['center'] = $request->input('coords')[$key];
+            if(sizeof($data) == 0) {
+                $resp['average'] = 0;
+            } else {
+                $resp['average'] = collect($data)->map(fn($data)=>$data->harga)->sum()/sizeof($data);
+            }
+            return $resp;
+        });
+
+
+
+        return response([
+            'status' => true,
+            'message' => '',
+            'data' => $result
+        ]);
 
     }
 }

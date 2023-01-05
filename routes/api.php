@@ -24,3 +24,4 @@ Route::post('/create', [HeatMapController::class, 'store']);
 Route::get('/allheatmap', [HeatMapController::class, 'index']);
 Route::get('/heatmap', [HeatMapController::class, 'index']);
 Route::post('/area', [HeatMapController::class, 'averageInCircle']);
+Route::post('/test', [HeatMapController::class, 'testing']);
