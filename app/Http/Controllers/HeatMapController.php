@@ -16,11 +16,13 @@ class HeatMapController extends Controller
             "long" => ["required"]
         ]);
 
-        HeatMap::query()->create($payload);
+        $result = HeatMap::query()->create($payload);
+        $resp = HeatMap::postHeatMap($result->id);
+
         return response()->json([
             "status" => true,
             "message" => "success",
-            "data" => $payload
+            "data" => $resp
         ], 201);
     }
 
@@ -37,7 +39,7 @@ class HeatMapController extends Controller
 
        $collection = $heatmap->map(function ($res) {
             $response['id'] = $res['id'];
-            $response['harga'] = $res['harga'];
+            $response['price'] = $res['harga'];
             $response['latitude'] = (float)$res['lat'];
             $response['longitude'] = (float)$res['long'];
             return $response;
@@ -73,7 +75,7 @@ class HeatMapController extends Controller
             if(sizeof($data) == 0) {
                 $resp['average'] = 0;
             } else {
-                $resp['average'] = collect($data)->map(fn($data)=>$data->harga)->sum()/sizeof($data);
+                $resp['average'] = collect($data)->map(fn($data)=>$data->price)->sum()/sizeof($data);
             }
             return $resp;
         });
