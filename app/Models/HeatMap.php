@@ -12,34 +12,44 @@ class HeatMap extends Model
     protected $guarded = ['id'];
     protected $table = 'heatmap';
 
-    public static function getHeatMap()
+    /**
+     * this function get all heatmap data ., at the same time change data response
+     *
+     * @return array
+     */
+    public static function getHeatMaps()
     {
-        $heatMap = (new static)::get();
-        $heatMap = collect($heatMap)->map(function ($data){
-            $data['price'] = $data['harga'];
-            $data['latitude'] = $data['lat'];
-            $data['longitude'] = $data['long'];
-            unset($data['harga']);
-            unset($data['lat']);
-            unset($data['long']);
+        $heatMaps = (new static)::get();
+        $heatMaps = collect($heatMaps)->map(function ($heatMap){
+            $heatMap['price'] = $heatMap['harga'];
+            $heatMap['latitude'] = $heatMap['lat'];
+            $heatMap['longitude'] = $heatMap['long'];
+            unset($heatMap['harga']);
+            unset($heatMap['lat']);
+            unset($heatMap['long']);
 
-        return $data;
+            return $heatMap;
         });
     
-        return $heatMap;
+        return $heatMaps;
     }
 
-    public static function postHeatMap($id)
+    /**
+     * This function changes data response when adding new property data
+     *
+     * @return array
+     */
+    public static function getHeatMap($id)
     {
 
-        $resp = (new static)::where('id', $id)->first();
-        $resp['price'] = $resp['harga'];
-        $resp['latitude'] = $resp['lat'];
-        $resp['longitude'] = $resp['long'];
-        unset($resp['harga']);
-        unset($resp['lat']);
-        unset($resp['long']);
+        $heatMap = (new static)::where('id', $id)->first();
+        $heatMap['price'] = $heatMap['harga'];
+        $heatMap['latitude'] = $heatMap['lat'];
+        $heatMap['longitude'] = $heatMap['long'];
+        unset($heatMap['harga']);
+        unset($heatMap['lat']);
+        unset($heatMap['long']);
 
-        return $resp;
+        return $heatMap;
     }
 }

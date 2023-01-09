@@ -7,6 +7,13 @@ use App\Models\HeatMap;
 
 class HeatMapController extends Controller
 {
+
+    /**
+     * This function is to add new property data
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
     public function store(Request $request)
     {
         $payload = $request->all();
@@ -17,7 +24,7 @@ class HeatMapController extends Controller
         ]);
 
         $result = HeatMap::query()->create($payload);
-        $resp = HeatMap::postHeatMap($result->id);
+        $resp = HeatMap::getHeatMap($result->id);
 
         return response()->json([
             "status" => true,
@@ -26,6 +33,11 @@ class HeatMapController extends Controller
         ], 201);
     }
 
+    /**
+     * This function is to see all existing property data
+     * 
+     * @return array
+     */
     public function index()
     {
         $heatmap = HeatMap::all();
@@ -34,7 +46,7 @@ class HeatMapController extends Controller
                 "status" => false,
                 "message" => "failed",
                 "data" => $heatmap
-            ]);
+            ],404);
         }
 
        $collection = $heatmap->map(function ($res) {
@@ -51,13 +63,21 @@ class HeatMapController extends Controller
             "status" => true,
             "message" => "success",
             "data" => $collection
-        ]);
+        ],200);
     }
 
+    /**
+     * looking for average from each circle., 
+     * and At the same time get every property that is 2km away from 
+     * the point specified in the circle
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
     public function averageInCircle(Request $request)
     {
         $result = [];
-        $heatMap = HeatMap::getHeatMap();
+        $heatMap = HeatMap::getHeatMaps();
         foreach($request->input('coords') as $coord) {
             $latitude = $coord['latitude'];
             $longitude = $coord['longitude'];
@@ -80,16 +100,25 @@ class HeatMapController extends Controller
             return $resp;
         });
 
-
-
         return response([
             'status' => true,
-            'message' => '',
+            'message' => 'success',
             'data' => $result
         ]);
 
     }
 
+
+    /**
+     * Determine whether a point is in a circle
+     *
+     * @param  integer a - Latitude coordinate
+     * @param  integer b - Longitude coordinate
+     * @param  integer x - Circle center latitude
+     * @param  integer y - Circle center longitude
+     * @param  integer r - Radius in meter
+     * @return boolean
+     */
     public function isInArea($a, $b, $x, $y, $r)
     {
 
@@ -104,42 +133,5 @@ class HeatMapController extends Controller
             return true;
         }
         return false;
-
-    }
-
-    public function testing(Request $request)
-    {
-        $result = [];
-        $heatMap = HeatMap::all();
-        foreach($request->input('coords') as $coord) {
-            $latitude = $coord['latitude'];
-            $longitude = $coord['longitude'];
-            $filter = $heatMap->filter(function($data) use ($latitude, $longitude){
-                return $this->isInArea($latitude, $longitude, $data->lat, $data->long, 1000);
-            });
-            array_push($result, $filter->values());
-        }
-
-
-        $result = collect($result)->map(function($data, $key) use ($request){
-            $resp = [];
-            $resp['coords'] = $data;
-            $resp['center'] = $request->input('coords')[$key];
-            if(sizeof($data) == 0) {
-                $resp['average'] = 0;
-            } else {
-                $resp['average'] = collect($data)->map(fn($data)=>$data->harga)->sum()/sizeof($data);
-            }
-            return $resp;
-        });
-
-
-
-        return response([
-            'status' => true,
-            'message' => '',
-            'data' => $result
-        ]);
-
     }
 }
