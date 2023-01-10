@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\HeatMap;
+use App\Helpers\HttpClient;
 
 class HeatMapController extends Controller
 {
@@ -108,6 +109,31 @@ class HeatMapController extends Controller
 
     }
 
+   /**
+     * this function get detail area
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function areaDetail(Request $request)
+    {
+        $payload = [
+            'latitude' => $request->input('latitude'),
+            'longitude' => $request->input('longitude'),
+        ];
+        $heatMaps = HeatMap::getHeatMaps();
+        $filter = $heatMaps->filter(function($heatMap) use ($payload){
+            return $this->isInArea($payload['latitude'], $payload['longitude'], $heatMap->latitude, $heatMap->longitude, 1000);
+        });
+
+        return response([
+            'status' => true,
+            'message' => 'success',
+            'data' => $filter->values()
+        ]);
+
+    }
+
 
     /**
      * Determine whether a point is in a circle
@@ -133,5 +159,27 @@ class HeatMapController extends Controller
             return true;
         }
         return false;
+    }
+
+    public function search(Request $request)
+    {
+        $query = [
+            'q' => $request->input('q'),
+            'format' => 'jsonv2',
+        ];
+
+        $url = url('https://nominatim.openstreetmap.org/search.php') . '?' . http_build_query($query, ', &');
+
+        $response = HttpClient::fetch(
+            "GET",
+            $url,
+        );
+        
+        return response([
+            'status' => true,
+            'message' => 'success',
+            'data' => $response
+        ]);
+
     }
 }

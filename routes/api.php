@@ -23,3 +23,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/create', [HeatMapController::class, 'store']);
 Route::get('/allheatmap', [HeatMapController::class, 'index']);
 Route::post('/area', [HeatMapController::class, 'averageInCircle']);
+Route::post('/area/detail', [HeatMapController::class, 'areaDetail']);
+Route::get('/search', [HeatMapController::class, 'search']);
