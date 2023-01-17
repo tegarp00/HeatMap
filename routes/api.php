@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HeatMapController;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,8 +21,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/create', [HeatMapController::class, 'store']);
+Route::post('/create', [HeatMapController::class, 'store'])->middleware(["withAuth"]);
 Route::get('/allheatmap', [HeatMapController::class, 'index']);
 Route::post('/area', [HeatMapController::class, 'averageInCircle']);
 Route::post('/area/detail', [HeatMapController::class, 'areaDetail']);
 Route::get('/search', [HeatMapController::class, 'search']);
+Route::get('/reverse', [HeatMapController::class, 'reverseArea']);
+Route::post("/login", [AuthController::class, "login"]);
+Route::get("/logout", [AuthController::class, "logout"]);

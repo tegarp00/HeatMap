@@ -161,6 +161,13 @@ class HeatMapController extends Controller
         return false;
     }
 
+   /**
+     * this function search geolocation information
+     * By PlaceName
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
     public function search(Request $request)
     {
         $query = [
@@ -169,6 +176,36 @@ class HeatMapController extends Controller
         ];
 
         $url = url('https://nominatim.openstreetmap.org/search.php') . '?' . http_build_query($query, ', &');
+
+        $response = HttpClient::fetch(
+            "GET",
+            $url,
+        );
+        
+        return response([
+            'status' => true,
+            'message' => 'success',
+            'data' => $response
+        ]);
+
+    }
+
+   /**
+     * this function search place information
+     * By Coordinate
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function reverseArea(Request $request)
+    {
+        $query = [
+            'lat' => $request->input('lat'),
+            'lon' => $request->input('lon'),
+            'format' => 'jsonv2',
+        ];
+
+        $url = url('https://nominatim.openstreetmap.org/reverse.php') . '?' . http_build_query($query, ',&');
 
         $response = HttpClient::fetch(
             "GET",
