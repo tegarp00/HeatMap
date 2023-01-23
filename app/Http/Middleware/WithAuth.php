@@ -17,14 +17,33 @@ class WithAuth
      */
     public function handle(Request $request, Closure $next)
     {
-        $username = Cookie::get('username');
-        if($username !== 'mimin') {
-            return response()->json([
+        $token = $request->header('Authorization');
+        $dapp = $request->header('d-app-authorization');
+
+        if($token == null || $dapp == null) {
+           return response()->json([
                 "status" => false,
-                "message" => "You are not login",
+                "message" => "Token not provided",
                 "data" => []
-            ], 401);
+            ], 401); 
         }
+
+        try {
+            if(decrypt($token) != $dapp) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "You are not login",
+                    "data" => []
+                ], 401);
+            }
+        } catch (\Throwable $th) {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Invalid Token",
+                    "data" => []
+                ], 401);
+        }
+
     
         return $next($request);
     }

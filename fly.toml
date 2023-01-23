@@ -10,8 +10,6 @@ processes = []
     NODE_VERSION = "14"
     PHP_VERSION = "8.2"
 
-[deploy]
-  release_command = "php /var/www/html/artisan migrate --force"
 
 
 [env]

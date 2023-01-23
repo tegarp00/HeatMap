@@ -13,7 +13,9 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $redirect = $request->input('redirect');
         $admin = Admin::query()->where("email", $request->input("email"))->first();
+        $token = $request->input('token');
 
 
         // cek admin
@@ -33,13 +35,18 @@ class AuthController extends Controller
                 "data" => []
             ], 400);
         }
-        
+       
+        if($redirect != null) {
+            return redirect($redirect);
+        }
 
         return response()->json([
             "status" => "success",
-            "message" => "Login success",
-            "data" => $admin,
-        ],200)->withCookie('username', $admin->username);
+            "message" => "}Login success",
+            "data" => [
+                'token' => encrypt($token),
+            ],
+        ],200);
     } 
 
     function logout(Request $request) {
