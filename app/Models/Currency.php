@@ -9,5 +9,9 @@ class Currency extends Model
 {
     use HasFactory;
     protected $guarded = ['id'];
-    protected $table = 'currency';
+    protected $table = 'currencies';
+    protected $casts = [
+          'rate' => 'float'
+    ];
+
 }
