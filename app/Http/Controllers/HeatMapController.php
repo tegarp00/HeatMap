@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\HeatMap;
 use App\Helpers\HttpClient;
+use App\Models\Currency;
 
 class HeatMapController extends Controller
 {
@@ -219,4 +220,50 @@ class HeatMapController extends Controller
         ]);
 
     }
+
+    /**
+     * this function search place information
+     * By Coordinate
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function getCurrencies()
+    {
+      $currencies = Currency::query()->get();
+      return response([
+            'status' => true,
+            'message' => 'success',
+            'data' => $currencies
+        ]);
+    }
+
+    public function updateCurrencies()
+    {
+         
+        $query = [
+            'base' => "idr",
+        ];
+
+        $url = url('https://api.exchangerate.host/latest') . '?' . http_build_query($query, ',&');
+
+        $response = HttpClient::fetch(
+            "GET",
+            $url,
+        );
+
+        foreach($response['rates'] as $k => $v) {
+          $getRates = Currency::query()->where('name', $k)->first();
+          $getRates->fill([$k=>$v]);
+          $getRates->save();
+        }
+
+        
+        return response([
+            'status' => true,
+            'message' => 'success',
+            'data' => Currency::query()->get(),
+        ]);
+    }
+
 }
