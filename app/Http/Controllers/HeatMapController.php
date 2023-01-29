@@ -67,6 +67,7 @@ class HeatMapController extends Controller
             $response['price'] = $res['harga'];
             $response['latitude'] = (float)$res['lat'];
             $response['longitude'] = (float)$res['long'];
+            $response['type'] = $res['type'];
             return $response;
         })->reject(function ($res) {
             return empty($res);
