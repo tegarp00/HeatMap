@@ -18,6 +18,9 @@ return new class extends Migration
             $table->bigInteger('harga');
             $table->float('lat');
             $table->float('long');
+            $table->string('type');
+            $table->integer('area');
+            $table->text('desc')->default('');
             $table->timestamps();
         });
     }

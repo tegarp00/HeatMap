@@ -11,6 +11,9 @@ class HeatMap extends Model
     use HasFactory;
     protected $guarded = ['id'];
     protected $table = 'heatmap';
+    protected $casts = [
+      'desc' => 'string'
+    ];
 
     /**
      * this function get all heatmap data ., at the same time change data response
@@ -21,7 +24,7 @@ class HeatMap extends Model
     {
         $heatMaps = (new static)::get();
         $heatMaps = collect($heatMaps)->map(function ($heatMap){
-            $heatMap['price'] = $heatMap['harga'];
+            $heatMap['price'] = $heatMap['harga']/$heatMap['area'];
             $heatMap['latitude'] = $heatMap['lat'];
             $heatMap['longitude'] = $heatMap['long'];
             unset($heatMap['harga']);

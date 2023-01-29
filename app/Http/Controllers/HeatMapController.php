@@ -18,16 +18,23 @@ class HeatMapController extends Controller
      */
     public function store(Request $request)
     {
+        // catch all user input
         $payload = $request->all();
+        // validate user input
         $request->validate([
             "harga" => ["required"],
             "lat" => ["required"],
-            "long" => ["required"]
+            "long" => ["required"],
+            "type" => ["required"],
+            "area" => ["required"],
         ]);
 
+        // insert and get validated data into DB
         $result = HeatMap::query()->create($payload);
         $resp = HeatMap::getHeatMap($result->id);
 
+        
+        // return response to client
         return response()->json([
             "status" => true,
             "message" => "success",
@@ -42,7 +49,10 @@ class HeatMapController extends Controller
      */
     public function index()
     {
+        // get all property data in DB
         $heatmap = HeatMap::all();
+        
+        // if no data property
         if(!$heatmap) {
             return response()->json([
                 "status" => false,
@@ -51,6 +61,7 @@ class HeatMapController extends Controller
             ],404);
         }
 
+        // cast coordinate data type from string into float
        $collection = $heatmap->map(function ($res) {
             $response['id'] = $res['id'];
             $response['price'] = $res['harga'];
@@ -61,6 +72,7 @@ class HeatMapController extends Controller
             return empty($res);
         }); 
 
+        // return response to client
         return response()->json([
             "status" => true,
             "message" => "success",
@@ -78,30 +90,47 @@ class HeatMapController extends Controller
      */
     public function averageInCircle(Request $request)
     {
+
+        // create array for collect data
         $result = [];
+
+        // get all data property
         $heatMap = HeatMap::getHeatMaps();
+
+        // loop user input
         foreach($request->input('coords') as $coord) {
             $latitude = $coord['latitude'];
             $longitude = $coord['longitude'];
+
+            // filter property if in scope radius
             $filter = $heatMap->filter(function($data) use ($latitude, $longitude){
                 return $this->isInArea($latitude, $longitude, $data->latitude, $data->longitude, 1000);
             });
+            
+            // append filtered property into result array
             array_push($result, $filter->values());
         }
 
 
+        // map result to calculate average price
         $result = collect($result)->map(function($data, $key) use ($request){
             $resp = [];
             $resp['coords'] = $data;
             $resp['center'] = $request->input('coords')[$key];
+        
+            // if no data property in area average is 0
             if(sizeof($data) == 0) {
                 $resp['average'] = 0;
             } else {
+                // calculate total average price
                 $resp['average'] = collect($data)->map(fn($data)=>$data->price)->sum()/sizeof($data);
             }
+            // return result calculate
             return $resp;
         });
 
+
+        // return response to client
         return response([
             'status' => true,
             'message' => 'success',
@@ -149,17 +178,26 @@ class HeatMapController extends Controller
     public function isInArea($a, $b, $x, $y, $r)
     {
 
+        // Earth radius
         $earth = 6378.137;
+
+        // initialize phi value 
         $pi = pi();
+
+        // meter in map scale
         $m = (1/((2 * $pi / 360) * $earth)) / 1000;
 
+        // distances beetwen two coordinates
         $distPoint = ($a - $x) * ($a - $x) + ($b - $y) * ($b - $y);
+        
+        // convert radius meter into map scale
         $r = $r * $m;
+        
+        // calculate squared radius
         $r *= $r;
-        if($distPoint < $r) {
-            return true;
-        }
-        return false;
+        
+        // if distances less than computed radius
+        return $distPoint < $r;
     }
 
    /**
@@ -171,18 +209,23 @@ class HeatMapController extends Controller
      */
     public function search(Request $request)
     {
+
+        // catch user request query
         $query = [
             'q' => $request->input('q'),
             'format' => 'jsonv2',
         ];
 
+        // initialize api url nominatin for search this area
         $url = url('https://nominatim.openstreetmap.org/search.php') . '?' . http_build_query($query, ', &');
 
+        // request to nominatin api with user query
         $response = HttpClient::fetch(
             "GET",
             $url,
         );
         
+        // return response to client
         return response([
             'status' => true,
             'message' => 'success',
@@ -200,19 +243,42 @@ class HeatMapController extends Controller
      */
     public function reverseArea(Request $request)
     {
-        $query = [
+        // catch user request query
+        $queryN = [
             'lat' => $request->input('lat'),
             'lon' => $request->input('lon'),
             'format' => 'jsonv2',
         ];
 
-        $url = url('https://nominatim.openstreetmap.org/reverse.php') . '?' . http_build_query($query, ',&');
+        // catch user request query
+        $queryOTM = [
+            'apikey' => env('OPENTRIPMAP_TOKEN'),
+            'lat' => $request->input('lat'),
+            'lon' => $request->input('lon'),
+            'radius' => $request->input('radius'),
+        ];
 
+        // initialize api url nominatim for reverse in area
+        $urlNominatim = url('https://nominatim.openstreetmap.org/reverse.php') . '?' . http_build_query($queryN, ',&');
+
+        // initialize api url open tripMap
+        $urlOpenTripMap = url('https://api.opentripmap.com/0.1/en/places/radius') . '?' . http_build_query($queryOTM, ',&');
+
+        // request to nominatim api with user query
         $response = HttpClient::fetch(
             "GET",
-            $url,
+            $urlNominatim,
         );
+
+        // request to open tripMap api with user query
+        $responseOTM = HttpClient::fetch(
+            "GET",
+            $urlOpenTripMap,
+        );
+
+        $response['popular'] = $responseOTM;
         
+        // return response to client 
         return response([
             'status' => true,
             'message' => 'success',
@@ -221,6 +287,63 @@ class HeatMapController extends Controller
 
     }
 
+   /**
+     * this function search place information
+     * By Coordinate
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return array
+     */
+    public function reverseAreaPopular(Request $request)
+    {
+        // catch user request query
+        $queryN = [
+            'lat' => $request->input('lat'),
+            'lon' => $request->input('lon'),
+            'format' => 'jsonv2',
+        ];
+
+        // catch user request query
+        $queryFSQ = [
+            'll' => $request->input('lat') . ',' . $request->input('lon'),
+            'sort' => 'distance',
+            'limit' => 50,
+            'radius' => $request->input('radius'),
+        ];
+
+        // initialize api url nominatim for reverse in area
+        $urlNominatim = url('https://nominatim.openstreetmap.org/reverse.php') . '?' . http_build_query($queryN, ',&');
+
+        // initialize api url open tripMap
+        $headers = [];
+        $urlFSQ = url('https://api.foursquare.com/v3/places/search') . '?' . http_build_query($queryFSQ, ',&');
+        $headers['Authorization'] = env('FSQ_TOKEN');
+
+        // request to nominatim api with user query
+        $response = HttpClient::fetch(
+            "GET",
+            $urlNominatim,
+        );
+
+        // request to open tripMap api with user query
+        $responseFSQ = HttpClient::fetch(
+            "GET",
+            $urlFSQ,
+            $headers
+        );
+
+        $response['popular'] = $responseFSQ;
+        
+        // return response to client 
+        return response([
+            'status' => true,
+            'message' => 'success',
+            'data' => $response
+        ]);
+
+    }
+
+  // =============== Experimental Feature ====================== //
     /**
      * this function search place information
      * By Coordinate

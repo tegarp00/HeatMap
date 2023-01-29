@@ -27,6 +27,7 @@ Route::post('/area', [HeatMapController::class, 'averageInCircle']);
 Route::post('/area/detail', [HeatMapController::class, 'areaDetail']);
 Route::get('/search', [HeatMapController::class, 'search']);
 Route::get('/reverse', [HeatMapController::class, 'reverseArea']);
+Route::get('/reverseArea', [HeatMapController::class, 'reverseAreaPopular']);
 Route::get('/getCurrencies', [HeatMapController::class, 'getCurrencies']);
 Route::get('/updateCurrencies', [HeatMapController::class, 'updateCurrencies']);
 Route::post("/login", [AuthController::class, "login"]);

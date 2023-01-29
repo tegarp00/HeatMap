@@ -7,14 +7,9 @@ use Illuminate\Support\Facades;
 
 class HttpClient
 {
-    public static function fetch($method, $url, $body = [], $files = [])
+    public static function fetch($method, $url, $headers=[], $body = [], $files = [])
     {
-        $headers = [];
-        $token = session()->get("token", "");
-
-        if ($token != "") {
-            $headers["Authorization"] = "Bearer $token";
-        }
+        
 
         if ($method == "GET") {
             return Http::withHeaders($headers)->get($url)->json();

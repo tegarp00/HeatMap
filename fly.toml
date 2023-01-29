@@ -1,4 +1,4 @@
-# fly.toml file generated for api-heatmap-farcapital on 2023-01-13T14:29:24+07:00
+# fly.toml file generated for api-heatmap-farcapital on 2023-01-28T17:54:45+07:00
 
 app = "api-heatmap-farcapital"
 kill_signal = "SIGINT"
@@ -10,17 +10,15 @@ processes = []
     NODE_VERSION = "14"
     PHP_VERSION = "8.2"
 
-
-
 [env]
   APP_ENV = "production"
   DB_CONNECTION = "pgsql"
-  DB_HOST = "farcapdb.internal"
-  DB_DATABASE= "farcapdb"
-
+  DB_HOST = "top2.nearest.of.farcapdb.internal"
+  DB_DATABASE= "api_heatmap_farcapital"
+  OPENTRIPMAP_TOKEN="5ae2e3f221c38a28845f05b601f63e17be02115427b01e17561f8434"
+  FSQ_TOKEN="fsq30FGrY4U/Nq7CtL31j/icKlyXPoAZbIa9pVnCHNNg/B4="
 
 [experimental]
-  allowed_public_ports = []
   auto_rollback = true
 
 [[services]]
