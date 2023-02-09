@@ -21,14 +21,31 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
+// this endpoint can only be accessed by the admin
 Route::post('/create', [HeatMapController::class, 'store'])->middleware(["withAuth"]);
+
+// get all to property data
 Route::get('/allheatmap', [HeatMapController::class, 'index']);
-Route::post('/area', [HeatMapController::class, 'averageInCircle']);
-Route::post('/area/detail', [HeatMapController::class, 'areaDetail']);
+
+// to find geoinformations with given keywords
 Route::get('/search', [HeatMapController::class, 'search']);
-Route::get('/reverse', [HeatMapController::class, 'reverseArea']);
+
+// find location name by latitude and longitude also list popular area nearby within given radius
 Route::get('/reverseArea', [HeatMapController::class, 'reverseAreaPopular']);
+
+// find how many coordinates and average price per square meter in a circle in radius 1KM
+Route::post('/area', [HeatMapController::class, 'averageInCircle']);
+
+
+// login
+Route::post("/login", [AuthController::class, "login"]);
+// logout
+Route::get("/logout", [AuthController::class, "logout"]);
+
+
+// this endpoint is not use in our live application because its still an experimental features
+Route::get('/reverse', [HeatMapController::class, 'reverseArea']);
+Route::post('/area/detail', [HeatMapController::class, 'areaDetail']);
 Route::get('/getCurrencies', [HeatMapController::class, 'getCurrencies']);
 Route::get('/updateCurrencies', [HeatMapController::class, 'updateCurrencies']);
-Route::post("/login", [AuthController::class, "login"]);
-Route::get("/logout", [AuthController::class, "logout"]);
+

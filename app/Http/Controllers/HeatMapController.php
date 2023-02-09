@@ -22,11 +22,11 @@ class HeatMapController extends Controller
         $payload = $request->all();
         // validate user input
         $request->validate([
-            "harga" => ["required"],
-            "lat" => ["required"],
-            "long" => ["required"],
-            "type" => ["required"],
-            "area" => ["required"],
+            "harga" => ["required", "integer"],
+            "lat" => ["required", "decimal"],
+            "long" => ["required", "decimal"],
+            "type" => ["required", "string"],
+            "area" => ["required", "decimal"],
         ]);
 
         // insert and get validated data into DB
@@ -218,13 +218,14 @@ class HeatMapController extends Controller
         ];
 
         // initialize api url nominatin for search this area
-        $url = url('https://nominatim.openstreetmap.org/search.php') . '?' . http_build_query($query, ', &');
+        $url = url('https://nominatim.openstreetmap.org/searh.php') . '?' . http_build_query($query, ', &');
 
         // request to nominatin api with user query
         $response = HttpClient::fetch(
             "GET",
             $url,
         );
+        // dd($reponse);
         
         // return response to client
         return response([
