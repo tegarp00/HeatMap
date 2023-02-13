@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
-- api-heatmap
+- azure-test
 
 pool:
   vmImage: ubuntu-latest
